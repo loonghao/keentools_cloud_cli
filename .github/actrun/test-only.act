@@ -1,92 +1,96 @@
 editor:
-  version: created: v1.34.0
-  entry: start
-  type: generic
-  nodes:
-    - id: start
-      type: core/start@v1
-      position:
-        x: -200
-        y: 0
+  version:
+    created: "v1.34.0"
 
-    - id: label-test
-      type: core/const-string@v1
-      position:
-        x: -200
-        y: 160
-      inputs:
-        value: "Running cargo tests..."
+entry: start
+type: generic
+desc: "Run cargo tests only"
 
-    - id: label-done
-      type: core/const-string@v1
-      position:
-        x: 400
-        y: 160
-      inputs:
-        value: "Tests passed!"
+nodes:
+  - id: start
+    type: core/start@v1
+    position:
+      x: -200
+      y: 0
 
-    - id: print-test
-      type: core/print@v1
-      position:
-        x: 0
-        y: 0
-      inputs:
-        values[0]: null
-        color: fg_cyan
+  - id: label-test
+    type: core/const-string@v1
+    position:
+      x: -200
+      y: 160
+    inputs:
+      value: "Running cargo tests..."
 
-    - id: print-done
-      type: core/print@v1
-      position:
-        x: 600
-        y: 0
-      inputs:
-        values[0]: null
-        color: fg_green
+  - id: label-done
+    type: core/const-string@v1
+    position:
+      x: 400
+      y: 160
+    inputs:
+      value: "Tests passed!"
 
-    - id: run-test
-      type: core/run-script@v1
-      position:
-        x: 200
-        y: -120
-      inputs:
-        shell: bash
-        script: "vx cargo test --locked"
+  - id: print-test
+    type: core/print@v1
+    position:
+      x: 0
+      y: 0
+    inputs:
+      values[0]: null
+      color: fg_cyan
 
-  connections:
-    - src:
-        node: label-test
-        port: result
-      dst:
-        node: print-test
-        port: values[0]
-      isLoop: false
-    - src:
-        node: label-done
-        port: result
-      dst:
-        node: print-done
-        port: values[0]
-      isLoop: false
+  - id: print-done
+    type: core/print@v1
+    position:
+      x: 600
+      y: 0
+    inputs:
+      values[0]: null
+      color: fg_green
 
-  executions:
-    - src:
-        node: start
-        port: exec
-      dst:
-        node: print-test
-        port: exec
-      isLoop: false
-    - src:
-        node: print-test
-        port: exec
-      dst:
-        node: run-test
-        port: exec
-      isLoop: false
-    - src:
-        node: run-test
-        port: exec
-      dst:
-        node: print-done
-        port: exec
-      isLoop: false
+  - id: run-test
+    type: core/run-script@v1
+    position:
+      x: 200
+      y: -120
+    inputs:
+      shell: bash
+      script: "vx cargo test --locked"
+
+connections:
+  - src:
+      node: label-test
+      port: result
+    dst:
+      node: print-test
+      port: values[0]
+    isLoop: false
+  - src:
+      node: label-done
+      port: result
+    dst:
+      node: print-done
+      port: values[0]
+    isLoop: false
+
+executions:
+  - src:
+      node: start
+      port: exec
+    dst:
+      node: print-test
+      port: exec
+    isLoop: false
+  - src:
+      node: print-test
+      port: exec
+    dst:
+      node: run-test
+      port: exec
+    isLoop: false
+  - src:
+      node: run-test
+      port: exec
+    dst:
+      node: print-done
+      port: exec
+    isLoop: false
