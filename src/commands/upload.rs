@@ -60,7 +60,9 @@ pub async fn run(args: UploadArgs, ctx: Context) -> Result<()> {
         let pb = ProgressBar::new(args.photos.len() as u64);
         pb.set_style(
             ProgressStyle::default_bar()
-                .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} {msg}")
+                .template(
+                    "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} {msg}",
+                )
                 .unwrap()
                 .progress_chars("#>-"),
         );

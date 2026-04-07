@@ -18,10 +18,7 @@ impl ApiClient {
 
         let http = Client::builder()
             .default_headers(headers)
-            .user_agent(concat!(
-                "keentools-cloud-cli/",
-                env!("CARGO_PKG_VERSION")
-            ))
+            .user_agent(concat!("keentools-cloud-cli/", env!("CARGO_PKG_VERSION")))
             .build()
             .context("Failed to build HTTP client")?;
 
@@ -168,7 +165,10 @@ impl ApiClient {
 async fn handle_response<R: DeserializeOwned>(resp: reqwest::Response) -> Result<R> {
     let status = resp.status();
     if status.is_success() {
-        let json = resp.json::<R>().await.context("Failed to parse API response")?;
+        let json = resp
+            .json::<R>()
+            .await
+            .context("Failed to parse API response")?;
         return Ok(json);
     }
     let body = resp.text().await.unwrap_or_default();

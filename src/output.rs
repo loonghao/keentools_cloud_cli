@@ -51,10 +51,7 @@ impl Printer {
     pub fn error(&self, msg: &str, code: &str) {
         match self.format {
             OutputFormat::Json => {
-                eprintln!(
-                    "{}",
-                    serde_json::json!({ "error": msg, "code": code })
-                );
+                eprintln!("{}", serde_json::json!({ "error": msg, "code": code }));
             }
             OutputFormat::Human => {
                 eprintln!("{} [{}] {}", "✗".red().bold(), code.yellow(), msg);

@@ -1,7 +1,10 @@
 use anyhow::Result;
 use clap::{Args, Subcommand};
 
-use crate::{config, output::{OutputFormat, Printer}};
+use crate::{
+    config,
+    output::{OutputFormat, Printer},
+};
 
 #[derive(Args, Debug)]
 pub struct AuthArgs {

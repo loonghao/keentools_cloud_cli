@@ -153,7 +153,8 @@ pub async fn run(args: RunArgs, ctx: Context) -> Result<()> {
         match &status {
             super::status::StatusResponse::Completed => {
                 if printer.is_json() {
-                    printer.success(&serde_json::json!({ "step": "status", "status": "completed" }));
+                    printer
+                        .success(&serde_json::json!({ "step": "status", "status": "completed" }));
                 } else {
                     printer.message("Reconstruction completed.");
                 }

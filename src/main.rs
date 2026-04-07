@@ -37,9 +37,7 @@ async fn run(cli: Cli) -> Result<()> {
     match cli.command {
         Commands::Schema(args) => return schema::run(args, output_format),
         Commands::Auth(args) => return commands::auth_cmd::run(args, output_format),
-        Commands::SelfUpdate(args) => {
-            return commands::self_update::run(args, output_format).await
-        }
+        Commands::SelfUpdate(args) => return commands::self_update::run(args, output_format).await,
         _ => {}
     }
 

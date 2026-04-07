@@ -101,10 +101,7 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
     }
 
     let query_str = query_parts.join("&");
-    let path = format!(
-        "/v1/avatar/{}/get-3d-model?{}",
-        args.avatar_id, query_str
-    );
+    let path = format!("/v1/avatar/{}/get-3d-model?{}", args.avatar_id, query_str);
 
     let download_url = loop {
         let resp: ModelResponse = ctx.client.get_json(&path).await?;
@@ -118,7 +115,10 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
                     );
                 }
                 if !printer.is_json() {
-                    printer.status_line("Status", &format!("Generating model, retrying in {}s...", data.time_sec));
+                    printer.status_line(
+                        "Status",
+                        &format!("Generating model, retrying in {}s...", data.time_sec),
+                    );
                 } else {
                     printer.success(&serde_json::json!({
                         "event": "retry-after",

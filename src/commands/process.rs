@@ -33,9 +33,7 @@ pub struct ProcessArgs {
 #[derive(Serialize)]
 #[serde(tag = "focal_length_type", rename_all = "snake_case")]
 enum FocalLengthPayload {
-    Manual {
-        focal_length_values: Vec<f32>,
-    },
+    Manual { focal_length_values: Vec<f32> },
     EstimateCommon,
     EstimatePerImage,
 }
@@ -87,10 +85,7 @@ pub async fn run(args: ProcessArgs, ctx: Context) -> Result<()> {
     }
 
     ctx.client
-        .post_json::<_, serde_json::Value>(
-            &format!("/v1/avatar/{}/process", args.avatar_id),
-            &body,
-        )
+        .post_json::<_, serde_json::Value>(&format!("/v1/avatar/{}/process", args.avatar_id), &body)
         .await
         .or_else(|e| {
             // 200 with no body is success; handle parse errors gracefully
