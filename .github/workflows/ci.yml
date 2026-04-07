@@ -45,6 +45,9 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
+      - name: Sync Cargo.lock
+        run: vx cargo update --workspace
+
       - name: Run quality checks
         run: vx just ci
 
@@ -81,6 +84,9 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: test-${{ matrix.os }}
+
+      - name: Sync Cargo.lock
+        run: vx cargo update --workspace
 
       - name: Run tests
         run: vx just test
@@ -141,6 +147,9 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: build-${{ matrix.target }}
+
+      - name: Sync Cargo.lock
+        run: vx cargo update --workspace
 
       - name: Build release binary
         run: vx just build-release-target ${{ matrix.target }}
