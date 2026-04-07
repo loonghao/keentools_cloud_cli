@@ -18,10 +18,7 @@ impl ApiClient {
 
         let http = Client::builder()
             .default_headers(headers)
-            .user_agent(concat!(
-                "keentools-cloud-cli/",
-                env!("CARGO_PKG_VERSION")
-            ))
+            .user_agent(concat!("keentools-cloud-cli/", env!("CARGO_PKG_VERSION")))
             .build()
             .context("Failed to build HTTP client")?;
 
@@ -47,6 +44,7 @@ impl ApiClient {
     }
 
     /// POST with no body, expect 200 OK (no response body).
+    #[allow(dead_code)]
     pub async fn post_empty(&self, path: &str) -> Result<()> {
         let url = format!("{}{}", self.base_url, path);
         let resp = self
@@ -79,6 +77,7 @@ impl ApiClient {
     }
 
     /// GET with query params, deserialize JSON response.
+    #[allow(dead_code)]
     pub async fn get_json_with_query<R: DeserializeOwned, Q: Serialize>(
         &self,
         path: &str,
@@ -112,7 +111,7 @@ impl ApiClient {
             .body(bytes)
             .send()
             .await
-            .with_context(|| format!("PUT to pre-signed URL failed"))?;
+            .context("PUT to pre-signed URL failed")?;
 
         let status = resp.status();
         if status.is_success() {
@@ -168,7 +167,10 @@ impl ApiClient {
 async fn handle_response<R: DeserializeOwned>(resp: reqwest::Response) -> Result<R> {
     let status = resp.status();
     if status.is_success() {
-        let json = resp.json::<R>().await.context("Failed to parse API response")?;
+        let json = resp
+            .json::<R>()
+            .await
+            .context("Failed to parse API response")?;
         return Ok(json);
     }
     let body = resp.text().await.unwrap_or_default();

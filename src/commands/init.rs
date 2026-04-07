@@ -49,7 +49,12 @@ pub async fn run(args: InitArgs, ctx: Context) -> Result<()> {
 
     let resp: InitResponse = ctx
         .client
-        .post_json("/v1/avatar/init", &InitRequest { image_count: args.count })
+        .post_json(
+            "/v1/avatar/init",
+            &InitRequest {
+                image_count: args.count,
+            },
+        )
         .await?;
 
     let out = Output {

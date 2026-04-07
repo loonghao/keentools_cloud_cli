@@ -10,6 +10,13 @@ pub enum OutputFormat {
     Json,
 }
 
+/// Emit an IPC progress event as a single NDJSON line to stdout.
+/// Always JSON regardless of the current output format.
+/// For use with --ipc flag by Qt/web frontends.
+pub fn emit_ipc(event: &serde_json::Value) {
+    println!("{}", serde_json::to_string(event).unwrap_or_default());
+}
+
 pub struct Printer {
     pub format: OutputFormat,
 }
@@ -48,13 +55,11 @@ impl Printer {
     }
 
     /// Print an error to stderr.
+    #[allow(dead_code)]
     pub fn error(&self, msg: &str, code: &str) {
         match self.format {
             OutputFormat::Json => {
-                eprintln!(
-                    "{}",
-                    serde_json::json!({ "error": msg, "code": code })
-                );
+                eprintln!("{}", serde_json::json!({ "error": msg, "code": code }));
             }
             OutputFormat::Human => {
                 eprintln!("{} [{}] {}", "✗".red().bold(), code.yellow(), msg);

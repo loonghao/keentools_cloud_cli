@@ -26,13 +26,9 @@ pub struct StatusArgs {
 #[serde(tag = "status", rename_all = "snake_case")]
 pub enum StatusResponse {
     NotStarted,
-    Running {
-        data: RunningData,
-    },
+    Running { data: RunningData },
     Completed,
-    Failed {
-        data: FailedData,
-    },
+    Failed { data: FailedData },
     Deleted,
 }
 
@@ -64,7 +60,10 @@ pub async fn run(args: StatusArgs, ctx: Context) -> Result<()> {
                     printer.status_line("Status", "not started");
                 }
                 StatusResponse::Running { data } => {
-                    printer.status_line("Status", &format!("running ({:.0}%)", data.progress * 100.0));
+                    printer.status_line(
+                        "Status",
+                        &format!("running ({:.0}%)", data.progress * 100.0),
+                    );
                 }
                 StatusResponse::Completed => {
                     printer.status_line("Status", "completed");

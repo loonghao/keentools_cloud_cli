@@ -52,11 +52,8 @@ pub fn https_url(url: &str) -> Result<()> {
 
 /// Validate photo count is within API limits (2–15).
 pub fn photo_count(count: usize) -> Result<()> {
-    if count < 2 || count > 15 {
-        bail!(
-            "photo count must be between 2 and 15, got {}",
-            count
-        );
+    if !(2..=15).contains(&count) {
+        bail!("photo count must be between 2 and 15, got {}", count);
     }
     Ok(())
 }

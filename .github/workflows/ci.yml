@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - master
   pull_request:
   workflow_dispatch:
 
@@ -43,11 +44,8 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: Check formatting
-        run: vx cargo fmt --check
-
-      - name: Clippy
-        run: vx cargo clippy -- -D warnings
+      - name: Run quality checks
+        run: vx just ci
 
   test:
     name: Test (${{ matrix.os }})
@@ -83,11 +81,8 @@ jobs:
         with:
           shared-key: test-${{ matrix.os }}
 
-      - name: Build
-        run: vx cargo build --locked
-
       - name: Run tests
-        run: vx cargo test --locked
+        run: vx just test
 
   build:
     name: Build (${{ matrix.target }})
@@ -147,6 +142,6 @@ jobs:
           shared-key: build-${{ matrix.target }}
 
       - name: Build release binary
-        run: vx cargo build --release --locked --target ${{ matrix.target }}
+        run: vx just build-release-target ${{ matrix.target }}
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc

@@ -1,7 +1,9 @@
-use anyhow::{bail, Result};
+use anyhow::{bail, Context as AnyhowContext, Result};
 use clap::Args;
 use indicatif::{ProgressBar, ProgressStyle};
 use serde::{Deserialize, Serialize};
+use std::fs;
+use std::io::Read;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -101,10 +103,7 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
     }
 
     let query_str = query_parts.join("&");
-    let path = format!(
-        "/v1/avatar/{}/get-3d-model?{}",
-        args.avatar_id, query_str
-    );
+    let path = format!("/v1/avatar/{}/get-3d-model?{}", args.avatar_id, query_str);
 
     let download_url = loop {
         let resp: ModelResponse = ctx.client.get_json(&path).await?;
@@ -118,7 +117,10 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
                     );
                 }
                 if !printer.is_json() {
-                    printer.status_line("Status", &format!("Generating model, retrying in {}s...", data.time_sec));
+                    printer.status_line(
+                        "Status",
+                        &format!("Generating model, retrying in {}s...", data.time_sec),
+                    );
                 } else {
                     printer.success(&serde_json::json!({
                         "event": "retry-after",
@@ -144,6 +146,7 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
         Some(pb)
     };
 
+    #[allow(clippy::type_complexity)]
     let progress_cb: Option<Box<dyn Fn(u64, Option<u64>)>> = pb.as_ref().map(|p| {
         let p = p.clone();
         let cb: Box<dyn Fn(u64, Option<u64>)> = Box::new(move |downloaded, total| {
@@ -155,18 +158,58 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
         cb
     });
 
+    // Determine actual download destination: OBJ is always a ZIP
+    let is_obj = matches!(args.format, crate::cli::MeshFormat::Obj);
+    let download_dest = if is_obj {
+        args.output_path.with_extension("zip")
+    } else {
+        args.output_path.clone()
+    };
+
     ctx.client
-        .download_to_file(&download_url, &args.output_path, progress_cb.as_deref())
+        .download_to_file(&download_url, &download_dest, progress_cb.as_deref())
         .await?;
 
     if let Some(p) = pb {
         p.finish_and_clear();
     }
 
-    printer.success(&serde_json::json!({
-        "saved_to": args.output_path.display().to_string(),
-        "format": format_str,
-    }));
+    if is_obj {
+        // Extract ZIP and report extracted files
+        let out_dir = args
+            .output_path
+            .parent()
+            .unwrap_or_else(|| std::path::Path::new("."));
+        let zip_file = fs::File::open(&download_dest)
+            .with_context(|| format!("Cannot open downloaded ZIP: {}", download_dest.display()))?;
+        let mut archive =
+            zip::ZipArchive::new(zip_file).with_context(|| "Failed to read ZIP archive")?;
+
+        let mut extracted: Vec<String> = Vec::new();
+        for i in 0..archive.len() {
+            let mut entry = archive.by_index(i)?;
+            let entry_name = entry.name().to_owned();
+            let dest = out_dir.join(&entry_name);
+            let mut buf = Vec::new();
+            entry.read_to_end(&mut buf)?;
+            fs::write(&dest, &buf)
+                .with_context(|| format!("Cannot write extracted file: {}", dest.display()))?;
+            extracted.push(dest.display().to_string());
+        }
+
+        // Remove the temp ZIP
+        let _ = fs::remove_file(&download_dest);
+
+        printer.success(&serde_json::json!({
+            "format": format_str,
+            "extracted": extracted,
+        }));
+    } else {
+        printer.success(&serde_json::json!({
+            "saved_to": args.output_path.display().to_string(),
+            "format": format_str,
+        }));
+    }
 
     Ok(())
 }

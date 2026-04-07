@@ -30,20 +30,24 @@ pub struct ProcessArgs {
     pub dry_run: bool,
 }
 
+/// Inner enum serializes as: {"focal_length_type": "estimate_per_image"} etc.
 #[derive(Serialize)]
 #[serde(tag = "focal_length_type", rename_all = "snake_case")]
-enum FocalLengthPayload {
-    Manual {
-        focal_length_values: Vec<f32>,
-    },
+enum FocalLengthInner {
+    Manual { focal_length_values: Vec<f32> },
     EstimateCommon,
     EstimatePerImage,
 }
 
+/// Wrapper produces: {"focal_length_type": {"focal_length_type": "..."}}
+#[derive(Serialize)]
+struct FocalLengthPayload {
+    focal_length_type: FocalLengthInner,
+}
+
 #[derive(Serialize)]
 struct ProcessRequest {
-    #[serde(flatten)]
-    focal_length: FocalLengthPayload,
+    focal_length_type: FocalLengthPayload,
     expressions_enabled: bool,
 }
 
@@ -63,16 +67,18 @@ pub async fn run(args: ProcessArgs, ctx: Context) -> Result<()> {
             if values.is_empty() {
                 bail!("--focal-lengths must not be empty");
             }
-            FocalLengthPayload::Manual {
+            FocalLengthInner::Manual {
                 focal_length_values: values,
             }
         }
-        FocalLengthType::EstimateCommon => FocalLengthPayload::EstimateCommon,
-        FocalLengthType::EstimatePerImage => FocalLengthPayload::EstimatePerImage,
+        FocalLengthType::EstimateCommon => FocalLengthInner::EstimateCommon,
+        FocalLengthType::EstimatePerImage => FocalLengthInner::EstimatePerImage,
     };
 
     let body = ProcessRequest {
-        focal_length: focal_payload,
+        focal_length_type: FocalLengthPayload {
+            focal_length_type: focal_payload,
+        },
         expressions_enabled: args.expressions,
     };
 
@@ -87,10 +93,7 @@ pub async fn run(args: ProcessArgs, ctx: Context) -> Result<()> {
     }
 
     ctx.client
-        .post_json::<_, serde_json::Value>(
-            &format!("/v1/avatar/{}/process", args.avatar_id),
-            &body,
-        )
+        .post_json::<_, serde_json::Value>(&format!("/v1/avatar/{}/process", args.avatar_id), &body)
         .await
         .or_else(|e| {
             // 200 with no body is success; handle parse errors gracefully

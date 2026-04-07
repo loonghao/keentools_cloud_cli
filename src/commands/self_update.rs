@@ -31,6 +31,7 @@ pub struct SelfUpdateArgs {
 struct GithubRelease {
     tag_name: String,
     assets: Vec<GithubAsset>,
+    #[allow(dead_code)]
     body: Option<String>,
 }
 
@@ -49,7 +50,11 @@ pub async fn run(args: SelfUpdateArgs, output: OutputFormat) -> Result<()> {
         .context("Failed to build HTTP client")?;
 
     let release = if let Some(ref v) = args.version {
-        let tag = if v.starts_with('v') { v.clone() } else { format!("v{}", v) };
+        let tag = if v.starts_with('v') {
+            v.clone()
+        } else {
+            format!("v{}", v)
+        };
         fetch_release_by_tag(&client, &tag).await?
     } else {
         fetch_latest_release(&client).await?
@@ -200,7 +205,9 @@ fn extract_from_tar_gz(data: &[u8]) -> Result<Vec<u8>> {
 
         if filename == "keentools-cloud" || filename == "keentools-cloud.exe" {
             let mut buf = Vec::new();
-            entry.read_to_end(&mut buf).context("Failed to read binary from archive")?;
+            entry
+                .read_to_end(&mut buf)
+                .context("Failed to read binary from archive")?;
             return Ok(buf);
         }
     }
@@ -218,7 +225,8 @@ fn extract_from_zip(data: &[u8]) -> Result<Vec<u8>> {
         let name = file.name().to_string();
         if name == "keentools-cloud.exe" || name == "keentools-cloud" {
             let mut buf = Vec::new();
-            file.read_to_end(&mut buf).context("Failed to read binary from ZIP")?;
+            file.read_to_end(&mut buf)
+                .context("Failed to read binary from ZIP")?;
             return Ok(buf);
         }
     }
@@ -232,7 +240,8 @@ fn replace_executable(exe_path: &PathBuf, new_bytes: &[u8]) -> Result<()> {
     {
         let mut f = std::fs::File::create(&tmp_path)
             .with_context(|| format!("Cannot write to {}", tmp_path.display()))?;
-        f.write_all(new_bytes).context("Failed to write new binary")?;
+        f.write_all(new_bytes)
+            .context("Failed to write new binary")?;
     }
 
     // Set executable permissions on Unix
