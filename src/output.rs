@@ -10,6 +10,13 @@ pub enum OutputFormat {
     Json,
 }
 
+/// Emit an IPC progress event as a single NDJSON line to stdout.
+/// Always JSON regardless of the current output format.
+/// For use with --ipc flag by Qt/web frontends.
+pub fn emit_ipc(event: &serde_json::Value) {
+    println!("{}", serde_json::to_string(event).unwrap_or_default());
+}
+
 pub struct Printer {
     pub format: OutputFormat,
 }

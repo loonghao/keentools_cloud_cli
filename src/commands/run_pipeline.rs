@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use crate::{
     cli::{FocalLengthType, MeshFormat},
-    output::Printer,
+    output::{emit_ipc, Printer},
     validate,
 };
 
@@ -57,6 +57,10 @@ pub struct RunArgs {
     /// Seconds between status polls (default: 5)
     #[arg(long, default_value = "5")]
     pub poll_interval: u64,
+
+    /// Emit IPC progress events as NDJSON to stdout (for Qt/web frontends)
+    #[arg(long)]
+    pub ipc: bool,
 }
 
 pub async fn run(args: RunArgs, ctx: Context) -> Result<()> {
@@ -77,6 +81,14 @@ pub async fn run(args: RunArgs, ctx: Context) -> Result<()> {
     }
 
     // ── Step 1: init ──────────────────────────────────────────────────────────
+    if args.ipc {
+        emit_ipc(&serde_json::json!({
+            "type": "progress",
+            "stage": "init",
+            "percent": 0,
+            "message": "Initializing session"
+        }));
+    }
     if !printer.is_json() {
         printer.status_line("Step 1/5", "Initializing avatar session...");
     }
@@ -106,7 +118,18 @@ pub async fn run(args: RunArgs, ctx: Context) -> Result<()> {
         printer.status_line("Step 2/5", "Uploading photos...");
     }
 
-    for (photo, url) in args.photos.iter().zip(upload_urls.iter()) {
+    let photo_count = args.photos.len();
+    for (i, (photo, url)) in args.photos.iter().zip(upload_urls.iter()).enumerate() {
+        if args.ipc {
+            // Upload occupies percent range 10–30
+            let pct = 10 + (i * 20 / photo_count.max(1));
+            emit_ipc(&serde_json::json!({
+                "type": "progress",
+                "stage": "upload",
+                "percent": pct,
+                "message": format!("Uploading photo {}/{}", i + 1, photo_count)
+            }));
+        }
         validate::https_url(url)?;
         ctx.client.put_file(url, photo).await?;
         if printer.is_json() {
@@ -118,6 +141,14 @@ pub async fn run(args: RunArgs, ctx: Context) -> Result<()> {
     }
 
     // ── Step 3: process ───────────────────────────────────────────────────────
+    if args.ipc {
+        emit_ipc(&serde_json::json!({
+            "type": "progress",
+            "stage": "process",
+            "percent": 40,
+            "message": "Starting reconstruction"
+        }));
+    }
     if !printer.is_json() {
         printer.status_line("Step 3/5", "Starting reconstruction...");
     }
@@ -152,6 +183,14 @@ pub async fn run(args: RunArgs, ctx: Context) -> Result<()> {
 
         match &status {
             super::status::StatusResponse::Completed => {
+                if args.ipc {
+                    emit_ipc(&serde_json::json!({
+                        "type": "progress",
+                        "stage": "reconstruct",
+                        "percent": 85,
+                        "message": "Reconstruction complete"
+                    }));
+                }
                 if printer.is_json() {
                     printer
                         .success(&serde_json::json!({ "step": "status", "status": "completed" }));
@@ -161,9 +200,25 @@ pub async fn run(args: RunArgs, ctx: Context) -> Result<()> {
                 break;
             }
             super::status::StatusResponse::Failed { data } => {
+                if args.ipc {
+                    emit_ipc(&serde_json::json!({
+                        "type": "error",
+                        "stage": "process",
+                        "message": format!("Reconstruction failed: {}", data.error_message)
+                    }));
+                }
                 bail!("Reconstruction failed: {}", data.error_message);
             }
             super::status::StatusResponse::Running { data } => {
+                if args.ipc {
+                    let pct = 45 + (data.progress * 40.0) as u64; // 45–85
+                    emit_ipc(&serde_json::json!({
+                        "type": "progress",
+                        "stage": "reconstruct",
+                        "percent": pct,
+                        "message": format!("Reconstructing... {:.0}%", data.progress * 100.0)
+                    }));
+                }
                 if printer.is_json() {
                     printer.success(&serde_json::json!({
                         "step": "status",
@@ -181,6 +236,14 @@ pub async fn run(args: RunArgs, ctx: Context) -> Result<()> {
     }
 
     // ── Step 5: download ──────────────────────────────────────────────────────
+    if args.ipc {
+        emit_ipc(&serde_json::json!({
+            "type": "progress",
+            "stage": "download",
+            "percent": 90,
+            "message": "Downloading model"
+        }));
+    }
     if !printer.is_json() {
         printer.status_line("Step 5/5", "Downloading 3D model...");
     }
@@ -188,7 +251,7 @@ pub async fn run(args: RunArgs, ctx: Context) -> Result<()> {
     super::download::run(
         DownloadArgs {
             avatar_id: avatar_id.clone(),
-            output_path: args.output_path,
+            output_path: args.output_path.clone(),
             format: args.format,
             blendshapes: args.blendshapes,
             texture: args.texture,
@@ -200,14 +263,26 @@ pub async fn run(args: RunArgs, ctx: Context) -> Result<()> {
             output: printer.format,
         },
     )
-    .await
+    .await?;
+
+    if args.ipc {
+        emit_ipc(&serde_json::json!({
+            "type": "complete",
+            "stage": "done",
+            "percent": 100,
+            "saved_to": args.output_path.display().to_string()
+        }));
+    }
+
+    Ok(())
 }
 
 fn build_focal_payload(
     fl_type: &FocalLengthType,
     fl_values: &Option<Vec<f32>>,
 ) -> Result<serde_json::Value> {
-    Ok(match fl_type {
+    // API expects: {"focal_length_type": {"focal_length_type": "...", ...}, "expressions_enabled": false}
+    let inner = match fl_type {
         FocalLengthType::Manual => {
             let values = fl_values.as_ref().ok_or_else(|| {
                 anyhow::anyhow!("--focal-lengths required when --focal-length-type=manual")
@@ -215,20 +290,17 @@ fn build_focal_payload(
             serde_json::json!({
                 "focal_length_type": "manual",
                 "focal_length_values": values,
-                "expressions_enabled": false,
             })
         }
         FocalLengthType::EstimateCommon => {
-            serde_json::json!({
-                "focal_length_type": "estimate_common",
-                "expressions_enabled": false,
-            })
+            serde_json::json!({ "focal_length_type": "estimate_common" })
         }
         FocalLengthType::EstimatePerImage => {
-            serde_json::json!({
-                "focal_length_type": "estimate_per_image",
-                "expressions_enabled": false,
-            })
+            serde_json::json!({ "focal_length_type": "estimate_per_image" })
         }
-    })
+    };
+    Ok(serde_json::json!({
+        "focal_length_type": inner,
+        "expressions_enabled": false,
+    }))
 }
