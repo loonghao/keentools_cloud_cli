@@ -1,291 +1,290 @@
 editor:
-  version: created: v1.34.0
-  entry: start
-  type: generic
-  nodes:
-    - id: start
-      type: core/start@v1
-      position:
-        x: -300
-        y: 0
+  version:
+    created: "v1.34.0"
 
-    # ── labels ────────────────────────────────────────────────────────────────
+entry: start
+type: generic
+desc: "Full CI pipeline: fmt-check, cargo check, clippy lint, cargo test"
 
-    - id: label-setup
-      type: core/const-string@v1
-      position:
-        x: -300
-        y: 160
-      inputs:
-        value: "Setting up Rust toolchain via vx..."
+nodes:
+  - id: start
+    type: core/start@v1
+    position:
+      x: -300
+      y: 0
 
-    - id: label-fmt
-      type: core/const-string@v1
-      position:
-        x: 200
-        y: 160
-      inputs:
-        value: "Checking code formatting..."
+  # ── labels ────────────────────────────────────────────────────────────────
 
-    - id: label-check
-      type: core/const-string@v1
-      position:
-        x: 600
-        y: 160
-      inputs:
-        value: "Running cargo check..."
+  - id: label-setup
+    type: core/const-string@v1
+    position:
+      x: -300
+      y: 160
+    inputs:
+      value: "Setting up Rust toolchain via vx..."
 
-    - id: label-lint
-      type: core/const-string@v1
-      position:
-        x: 1000
-        y: 160
-      inputs:
-        value: "Running clippy lints..."
+  - id: label-fmt
+    type: core/const-string@v1
+    position:
+      x: 200
+      y: 160
+    inputs:
+      value: "Checking code formatting..."
 
-    - id: label-test
-      type: core/const-string@v1
-      position:
-        x: 1400
-        y: 160
-      inputs:
-        value: "Running cargo tests..."
+  - id: label-check
+    type: core/const-string@v1
+    position:
+      x: 600
+      y: 160
+    inputs:
+      value: "Running cargo check..."
 
-    - id: label-done
-      type: core/const-string@v1
-      position:
-        x: 1800
-        y: 160
-      inputs:
-        value: "All checks passed!"
+  - id: label-lint
+    type: core/const-string@v1
+    position:
+      x: 1000
+      y: 160
+    inputs:
+      value: "Running clippy lints..."
 
-    # ── print steps ───────────────────────────────────────────────────────────
+  - id: label-test
+    type: core/const-string@v1
+    position:
+      x: 1400
+      y: 160
+    inputs:
+      value: "Running cargo tests..."
 
-    - id: print-setup
-      type: core/print@v1
-      position:
-        x: -100
-        y: 0
-      inputs:
-        values[0]: null
-        color: fg_cyan
+  - id: label-done
+    type: core/const-string@v1
+    position:
+      x: 1800
+      y: 160
+    inputs:
+      value: "All checks passed!"
 
-    - id: print-fmt
-      type: core/print@v1
-      position:
-        x: 300
-        y: 0
-      inputs:
-        values[0]: null
-        color: fg_cyan
+  # ── print steps ───────────────────────────────────────────────────────────
 
-    - id: print-check
-      type: core/print@v1
-      position:
-        x: 700
-        y: 0
-      inputs:
-        values[0]: null
-        color: fg_cyan
+  - id: print-setup
+    type: core/print@v1
+    position:
+      x: -100
+      y: 0
+    inputs:
+      values[0]: null
+      color: fg_cyan
 
-    - id: print-lint
-      type: core/print@v1
-      position:
-        x: 1100
-        y: 0
-      inputs:
-        values[0]: null
-        color: fg_cyan
+  - id: print-fmt
+    type: core/print@v1
+    position:
+      x: 300
+      y: 0
+    inputs:
+      values[0]: null
+      color: fg_cyan
 
-    - id: print-test
-      type: core/print@v1
-      position:
-        x: 1500
-        y: 0
-      inputs:
-        values[0]: null
-        color: fg_cyan
+  - id: print-check
+    type: core/print@v1
+    position:
+      x: 700
+      y: 0
+    inputs:
+      values[0]: null
+      color: fg_cyan
 
-    - id: print-done
-      type: core/print@v1
-      position:
-        x: 1900
-        y: 0
-      inputs:
-        values[0]: null
-        color: fg_green
+  - id: print-lint
+    type: core/print@v1
+    position:
+      x: 1100
+      y: 0
+    inputs:
+      values[0]: null
+      color: fg_cyan
 
-    # ── shell commands ────────────────────────────────────────────────────────
+  - id: print-test
+    type: core/print@v1
+    position:
+      x: 1500
+      y: 0
+    inputs:
+      values[0]: null
+      color: fg_cyan
 
-    - id: run-setup
-      type: core/run-script@v1
-      position:
-        x: 0
-        y: -120
-      inputs:
-        shell: bash
-        script: "vx setup"
+  - id: print-done
+    type: core/print@v1
+    position:
+      x: 1900
+      y: 0
+    inputs:
+      values[0]: null
+      color: fg_green
 
-    - id: run-fmt-check
-      type: core/run-script@v1
-      position:
-        x: 400
-        y: -120
-      inputs:
-        shell: bash
-        script: "vx cargo fmt --all -- --check"
+  # ── shell commands ────────────────────────────────────────────────────────
 
-    - id: run-check
-      type: core/run-script@v1
-      position:
-        x: 800
-        y: -120
-      inputs:
-        shell: bash
-        script: "vx cargo check"
+  - id: run-setup
+    type: core/run-script@v1
+    position:
+      x: 0
+      y: -120
+    inputs:
+      shell: bash
+      script: "vx setup"
 
-    - id: run-lint
-      type: core/run-script@v1
-      position:
-        x: 1200
-        y: -120
-      inputs:
-        shell: bash
-        script: "vx cargo clippy -- -D warnings"
+  - id: run-fmt-check
+    type: core/run-script@v1
+    position:
+      x: 400
+      y: -120
+    inputs:
+      shell: bash
+      script: "vx cargo fmt --all -- --check"
 
-    - id: run-test
-      type: core/run-script@v1
-      position:
-        x: 1600
-        y: -120
-      inputs:
-        shell: bash
-        script: "vx cargo test --locked"
+  - id: run-check
+    type: core/run-script@v1
+    position:
+      x: 800
+      y: -120
+    inputs:
+      shell: bash
+      script: "vx cargo check"
 
-  connections:
-    - src:
-        node: label-setup
-        port: result
-      dst:
-        node: print-setup
-        port: values[0]
-      isLoop: false
-    - src:
-        node: label-fmt
-        port: result
-      dst:
-        node: print-fmt
-        port: values[0]
-      isLoop: false
-    - src:
-        node: label-check
-        port: result
-      dst:
-        node: print-check
-        port: values[0]
-      isLoop: false
-    - src:
-        node: label-lint
-        port: result
-      dst:
-        node: print-lint
-        port: values[0]
-      isLoop: false
-    - src:
-        node: label-test
-        port: result
-      dst:
-        node: print-test
-        port: values[0]
-      isLoop: false
-    - src:
-        node: label-done
-        port: result
-      dst:
-        node: print-done
-        port: values[0]
-      isLoop: false
+  - id: run-lint
+    type: core/run-script@v1
+    position:
+      x: 1200
+      y: -120
+    inputs:
+      shell: bash
+      script: "vx cargo clippy -- -D warnings"
 
-  executions:
-    - src:
-        node: start
-        port: exec
-      dst:
-        node: print-setup
-        port: exec
-      isLoop: false
-    - src:
-        node: print-setup
-        port: exec
-      dst:
-        node: run-setup
-        port: exec
-      isLoop: false
+  - id: run-test
+    type: core/run-script@v1
+    position:
+      x: 1600
+      y: -120
+    inputs:
+      shell: bash
+      script: "vx cargo test --locked"
 
-    - src:
-        node: run-setup
-        port: exec
-      dst:
-        node: print-fmt
-        port: exec
-      isLoop: false
-    - src:
-        node: print-fmt
-        port: exec
-      dst:
-        node: run-fmt-check
-        port: exec
-      isLoop: false
+connections:
+  - src:
+      node: label-setup
+      port: result
+    dst:
+      node: print-setup
+      port: values[0]
+    isLoop: false
+  - src:
+      node: label-fmt
+      port: result
+    dst:
+      node: print-fmt
+      port: values[0]
+    isLoop: false
+  - src:
+      node: label-check
+      port: result
+    dst:
+      node: print-check
+      port: values[0]
+    isLoop: false
+  - src:
+      node: label-lint
+      port: result
+    dst:
+      node: print-lint
+      port: values[0]
+    isLoop: false
+  - src:
+      node: label-test
+      port: result
+    dst:
+      node: print-test
+      port: values[0]
+    isLoop: false
+  - src:
+      node: label-done
+      port: result
+    dst:
+      node: print-done
+      port: values[0]
+    isLoop: false
 
-    - src:
-        node: run-fmt-check
-        port: exec
-      dst:
-        node: print-check
-        port: exec
-      isLoop: false
-    - src:
-        node: print-check
-        port: exec
-      dst:
-        node: run-check
-        port: exec
-      isLoop: false
-
-    - src:
-        node: run-check
-        port: exec
-      dst:
-        node: print-lint
-        port: exec
-      isLoop: false
-    - src:
-        node: print-lint
-        port: exec
-      dst:
-        node: run-lint
-        port: exec
-      isLoop: false
-
-    - src:
-        node: run-lint
-        port: exec
-      dst:
-        node: print-test
-        port: exec
-      isLoop: false
-    - src:
-        node: print-test
-        port: exec
-      dst:
-        node: run-test
-        port: exec
-      isLoop: false
-
-    - src:
-        node: run-test
-        port: exec
-      dst:
-        node: print-done
-        port: exec
-      isLoop: false
+executions:
+  - src:
+      node: start
+      port: exec
+    dst:
+      node: print-setup
+      port: exec
+    isLoop: false
+  - src:
+      node: print-setup
+      port: exec
+    dst:
+      node: run-setup
+      port: exec
+    isLoop: false
+  - src:
+      node: run-setup
+      port: exec
+    dst:
+      node: print-fmt
+      port: exec
+    isLoop: false
+  - src:
+      node: print-fmt
+      port: exec
+    dst:
+      node: run-fmt-check
+      port: exec
+    isLoop: false
+  - src:
+      node: run-fmt-check
+      port: exec
+    dst:
+      node: print-check
+      port: exec
+    isLoop: false
+  - src:
+      node: print-check
+      port: exec
+    dst:
+      node: run-check
+      port: exec
+    isLoop: false
+  - src:
+      node: run-check
+      port: exec
+    dst:
+      node: print-lint
+      port: exec
+    isLoop: false
+  - src:
+      node: print-lint
+      port: exec
+    dst:
+      node: run-lint
+      port: exec
+    isLoop: false
+  - src:
+      node: run-lint
+      port: exec
+    dst:
+      node: print-test
+      port: exec
+    isLoop: false
+  - src:
+      node: print-test
+      port: exec
+    dst:
+      node: run-test
+      port: exec
+    isLoop: false
+  - src:
+      node: run-test
+      port: exec
+    dst:
+      node: print-done
+      port: exec
+    isLoop: false
