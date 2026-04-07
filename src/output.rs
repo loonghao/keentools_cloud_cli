@@ -48,6 +48,7 @@ impl Printer {
     }
 
     /// Print an error to stderr.
+    #[allow(dead_code)]
     pub fn error(&self, msg: &str, code: &str) {
         match self.format {
             OutputFormat::Json => {

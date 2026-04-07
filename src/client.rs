@@ -44,6 +44,7 @@ impl ApiClient {
     }
 
     /// POST with no body, expect 200 OK (no response body).
+    #[allow(dead_code)]
     pub async fn post_empty(&self, path: &str) -> Result<()> {
         let url = format!("{}{}", self.base_url, path);
         let resp = self
@@ -76,6 +77,7 @@ impl ApiClient {
     }
 
     /// GET with query params, deserialize JSON response.
+    #[allow(dead_code)]
     pub async fn get_json_with_query<R: DeserializeOwned, Q: Serialize>(
         &self,
         path: &str,
@@ -109,7 +111,7 @@ impl ApiClient {
             .body(bytes)
             .send()
             .await
-            .with_context(|| format!("PUT to pre-signed URL failed"))?;
+            .context("PUT to pre-signed URL failed")?;
 
         let status = resp.status();
         if status.is_success() {

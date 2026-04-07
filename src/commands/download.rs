@@ -144,6 +144,7 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
         Some(pb)
     };
 
+    #[allow(clippy::type_complexity)]
     let progress_cb: Option<Box<dyn Fn(u64, Option<u64>)>> = pb.as_ref().map(|p| {
         let p = p.clone();
         let cb: Box<dyn Fn(u64, Option<u64>)> = Box::new(move |downloaded, total| {

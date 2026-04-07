@@ -31,6 +31,7 @@ pub struct SelfUpdateArgs {
 struct GithubRelease {
     tag_name: String,
     assets: Vec<GithubAsset>,
+    #[allow(dead_code)]
     body: Option<String>,
 }
 
