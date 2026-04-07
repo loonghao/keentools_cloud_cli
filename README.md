@@ -158,21 +158,30 @@ Ready-to-run examples are in the [`examples/`](examples/) directory:
 
 | File | Description |
 |------|-------------|
-| [`examples/pipeline.py`](examples/pipeline.py) | Full Python pipeline (requires `pip install requests`) |
+| [`examples/cli-quickstart.md`](examples/cli-quickstart.md) | Complete guide for every CLI subcommand with copy-paste examples |
+| [`examples/pipeline.py`](examples/pipeline.py) | Full Python pipeline using the REST API directly (requires `pip install requests`) |
 | [`examples/pipeline.sh`](examples/pipeline.sh) | Full Bash pipeline (requires `curl` + `jq`) |
-
-Both examples require only setting two values:
+| [`examples/ipc-qt-demo.py`](examples/ipc-qt-demo.py) | PySide6/PyQt6 desktop app with real-time progress via `--ipc` NDJSON stream |
+| [`examples/web-bridge.py`](examples/web-bridge.py) | Flask + Server-Sent Events web frontend driven by `--ipc` mode (requires `pip install flask`) |
+| [`examples/actionforge-guide.md`](examples/actionforge-guide.md) | Agentic coding integration with [Actionforge](https://docs.actionforge.dev/agentic-coding/), MCP config, and `.act` graph patterns |
 
 ```bash
-# Either edit the constants at the top of each file, or export env vars:
 export KEENTOOLS_API_URL=https://your-api-endpoint.example.com
 export KEENTOOLS_API_TOKEN=your_token_here
 
-# Python
+# Python REST pipeline
 python examples/pipeline.py photo1.jpg photo2.jpg photo3.jpg
 
-# Bash
+# Bash pipeline
 bash examples/pipeline.sh photo1.jpg photo2.jpg photo3.jpg
+
+# Qt desktop app (real-time progress)
+pip install PySide6
+python examples/ipc-qt-demo.py
+
+# Web browser frontend
+pip install flask
+python examples/web-bridge.py   # open http://localhost:5000
 ```
 
 ## Output Formats
