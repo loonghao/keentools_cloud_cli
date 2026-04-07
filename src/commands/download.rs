@@ -1,0 +1,172 @@
+use anyhow::{bail, Result};
+use clap::Args;
+use indicatif::{ProgressBar, ProgressStyle};
+use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
+use std::time::Duration;
+
+use crate::{output::Printer, validate};
+
+use super::Context;
+
+#[derive(Args, Debug)]
+pub struct DownloadArgs {
+    /// Avatar ID
+    #[arg(long)]
+    pub avatar_id: String,
+
+    /// Destination file path
+    #[arg(long, short = 'o')]
+    pub output_path: PathBuf,
+
+    /// Mesh format
+    #[arg(long, value_enum, default_value = "glb")]
+    pub format: crate::cli::MeshFormat,
+
+    /// Blendshape groups to include (GLB only). Comma-separated: arkit,expression,nose
+    #[arg(long, value_delimiter = ',')]
+    pub blendshapes: Option<Vec<String>>,
+
+    /// Texture format (GLB only)
+    #[arg(long, value_enum)]
+    pub texture: Option<TextureFormat>,
+
+    /// Include wireframe edges (GLB only)
+    #[arg(long)]
+    pub edges: bool,
+
+    /// Auto-poll until model is ready for download
+    #[arg(long)]
+    pub poll: bool,
+}
+
+#[derive(clap::ValueEnum, Clone, Debug, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TextureFormat {
+    Jpg,
+    Png,
+}
+
+#[derive(Deserialize)]
+#[serde(tag = "event", rename_all = "kebab-case")]
+enum ModelResponse {
+    RetryAfter { data: RetryData },
+    Redirect { data: RedirectData },
+}
+
+#[derive(Deserialize)]
+struct RetryData {
+    time_sec: u64,
+}
+
+#[derive(Deserialize)]
+struct RedirectData {
+    url: String,
+}
+
+pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
+    let printer = Printer::new(ctx.output);
+    validate::avatar_id(&args.avatar_id)?;
+
+    let format_str = match args.format {
+        crate::cli::MeshFormat::Glb => "glb",
+        crate::cli::MeshFormat::Obj => "obj",
+    };
+
+    // Build query params manually to handle blendshapes as comma-separated
+    let mut query_parts = vec![
+        format!("mesh_format={}", format_str),
+        "mesh_lod=high_poly".to_string(),
+    ];
+
+    if let Some(ref bs) = args.blendshapes {
+        if !bs.is_empty() {
+            // API requires comma-separated, not repeated params
+            query_parts.push(format!("blendshapes={}", bs.join(",")));
+        }
+    }
+
+    if let Some(ref tex) = args.texture {
+        query_parts.push(format!(
+            "texture={}",
+            match tex {
+                TextureFormat::Jpg => "jpg",
+                TextureFormat::Png => "png",
+            }
+        ));
+    }
+
+    if args.edges {
+        query_parts.push("edges=true".to_string());
+    }
+
+    let query_str = query_parts.join("&");
+    let path = format!(
+        "/v1/avatar/{}/get-3d-model?{}",
+        args.avatar_id, query_str
+    );
+
+    let download_url = loop {
+        let resp: ModelResponse = ctx.client.get_json(&path).await?;
+        match resp {
+            ModelResponse::Redirect { data } => break data.url,
+            ModelResponse::RetryAfter { data } => {
+                if !args.poll {
+                    bail!(
+                        "Model is still generating. Use --poll to wait, or retry in {} seconds.",
+                        data.time_sec
+                    );
+                }
+                if !printer.is_json() {
+                    printer.status_line("Status", &format!("Generating model, retrying in {}s...", data.time_sec));
+                } else {
+                    printer.success(&serde_json::json!({
+                        "event": "retry-after",
+                        "retry_in_seconds": data.time_sec
+                    }));
+                }
+                tokio::time::sleep(Duration::from_secs(data.time_sec)).await;
+            }
+        }
+    };
+
+    // Progress bar for download
+    let pb: Option<ProgressBar> = if printer.is_json() {
+        None
+    } else {
+        let pb = ProgressBar::new(0);
+        pb.set_style(
+            ProgressStyle::default_bar()
+                .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec})")
+                .unwrap()
+                .progress_chars("#>-"),
+        );
+        Some(pb)
+    };
+
+    let progress_cb: Option<Box<dyn Fn(u64, Option<u64>)>> = pb.as_ref().map(|p| {
+        let p = p.clone();
+        let cb: Box<dyn Fn(u64, Option<u64>)> = Box::new(move |downloaded, total| {
+            if let Some(t) = total {
+                p.set_length(t);
+            }
+            p.set_position(downloaded);
+        });
+        cb
+    });
+
+    ctx.client
+        .download_to_file(&download_url, &args.output_path, progress_cb.as_deref())
+        .await?;
+
+    if let Some(p) = pb {
+        p.finish_and_clear();
+    }
+
+    printer.success(&serde_json::json!({
+        "saved_to": args.output_path.display().to_string(),
+        "format": format_str,
+    }));
+
+    Ok(())
+}
