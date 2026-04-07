@@ -1,5 +1,14 @@
 # keentools-cloud CLI
 
+[中文](README_zh.md) | **English**
+
+[![CI](https://github.com/loonghao/keentools_cloud_cli/actions/workflows/ci.yml/badge.svg)](https://github.com/loonghao/keentools_cloud_cli/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/loonghao/keentools_cloud_cli?label=release)](https://github.com/loonghao/keentools_cloud_cli/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)](#installation)
+[![Downloads](https://img.shields.io/github/downloads/loonghao/keentools_cloud_cli/total)](https://github.com/loonghao/keentools_cloud_cli/releases)
+
 > **Unofficial CLI for the [KeenTools Cloud](https://keentools.io) 3D Head Reconstruction API.**
 > This project is not affiliated with or endorsed by KeenTools.
 
@@ -15,17 +24,57 @@ Generate photorealistic 3D head models from 2–15 ordinary photos directly from
 
 ## Installation
 
+### Option 1 — One-liner (Linux / macOS)
+
 ```bash
-cargo install --git https://github.com/loonghao/keentools_cloud_cli
+curl -fsSL https://raw.githubusercontent.com/loonghao/keentools_cloud_cli/main/install.sh | bash
 ```
 
-Or build from source:
+Install a specific version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/loonghao/keentools_cloud_cli/main/install.sh | bash -s -- v0.1.1
+```
+
+### Option 2 — PowerShell (Windows)
+
+```powershell
+irm https://raw.githubusercontent.com/loonghao/keentools_cloud_cli/main/install.ps1 | iex
+```
+
+### Option 3 — Download pre-built binary
+
+Download the binary for your platform from the [Releases page](https://github.com/loonghao/keentools_cloud_cli/releases/latest) and place it on your `PATH`.
+
+| Platform | Archive |
+|----------|---------|
+| Linux x86_64 | `keentools-cloud-*-x86_64-unknown-linux-gnu.tar.gz` |
+| Linux ARM64 | `keentools-cloud-*-aarch64-unknown-linux-gnu.tar.gz` |
+| macOS x86_64 | `keentools-cloud-*-x86_64-apple-darwin.tar.gz` |
+| macOS ARM64 (M1+) | `keentools-cloud-*-aarch64-apple-darwin.tar.gz` |
+| Windows x64 | `keentools-cloud-*-x86_64-pc-windows-msvc.zip` |
+
+### Option 4 — Build from source
+
+Requires [Rust](https://rustup.rs/) stable.
 
 ```bash
 git clone https://github.com/loonghao/keentools_cloud_cli
 cd keentools_cloud_cli
 cargo build --release
 # Binary: ./target/release/keentools-cloud
+```
+
+Or install directly from Git:
+
+```bash
+cargo install --git https://github.com/loonghao/keentools_cloud_cli
+```
+
+### Self-update
+
+```bash
+keentools-cloud self-update
 ```
 
 ## Quick Start
@@ -56,6 +105,7 @@ keentools-cloud run photo1.jpg photo2.jpg photo3.jpg \
 | `ephemeral` | Zero-retention pipeline |
 | `schema` | Dump full CLI schema as JSON |
 | `auth` | Manage stored API token |
+| `self-update` | Update the CLI to the latest release |
 
 ## Step-by-Step Pipeline
 
@@ -101,6 +151,29 @@ keentools-cloud ephemeral \
 ```
 
 > **Note:** In ephemeral mode, `download` and `info` endpoints are unavailable after processing. Results are only in the URLs you provided.
+
+## Examples
+
+Ready-to-run examples are in the [`examples/`](examples/) directory:
+
+| File | Description |
+|------|-------------|
+| [`examples/pipeline.py`](examples/pipeline.py) | Full Python pipeline (requires `pip install requests`) |
+| [`examples/pipeline.sh`](examples/pipeline.sh) | Full Bash pipeline (requires `curl` + `jq`) |
+
+Both examples require only setting two values:
+
+```bash
+# Either edit the constants at the top of each file, or export env vars:
+export KEENTOOLS_API_URL=https://your-api-endpoint.example.com
+export KEENTOOLS_API_TOKEN=your_token_here
+
+# Python
+python examples/pipeline.py photo1.jpg photo2.jpg photo3.jpg
+
+# Bash
+bash examples/pipeline.sh photo1.jpg photo2.jpg photo3.jpg
+```
 
 ## Output Formats
 

@@ -1,5 +1,14 @@
 # keentools-cloud CLI
 
+**中文** | [English](README.md)
+
+[![CI](https://github.com/loonghao/keentools_cloud_cli/actions/workflows/ci.yml/badge.svg)](https://github.com/loonghao/keentools_cloud_cli/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/loonghao/keentools_cloud_cli?label=release)](https://github.com/loonghao/keentools_cloud_cli/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)](#安装)
+[![Downloads](https://img.shields.io/github/downloads/loonghao/keentools_cloud_cli/total)](https://github.com/loonghao/keentools_cloud_cli/releases)
+
 > **[KeenTools Cloud](https://keentools.io) 3D 头部重建 API 的非官方 CLI 工具。**
 > 本项目与 KeenTools 无任何关联或官方背书。
 
@@ -15,17 +24,57 @@
 
 ## 安装
 
+### 方式一 — 一键安装（Linux / macOS）
+
 ```bash
-cargo install --git https://github.com/loonghao/keentools_cloud_cli
+curl -fsSL https://raw.githubusercontent.com/loonghao/keentools_cloud_cli/main/install.sh | bash
 ```
 
-或从源码构建：
+安装指定版本：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/loonghao/keentools_cloud_cli/main/install.sh | bash -s -- v0.1.1
+```
+
+### 方式二 — PowerShell（Windows）
+
+```powershell
+irm https://raw.githubusercontent.com/loonghao/keentools_cloud_cli/main/install.ps1 | iex
+```
+
+### 方式三 — 下载预编译二进制
+
+从 [Releases 页面](https://github.com/loonghao/keentools_cloud_cli/releases/latest) 下载对应平台的二进制文件，放到 `PATH` 中即可。
+
+| 平台 | 压缩包 |
+|------|--------|
+| Linux x86_64 | `keentools-cloud-*-x86_64-unknown-linux-gnu.tar.gz` |
+| Linux ARM64 | `keentools-cloud-*-aarch64-unknown-linux-gnu.tar.gz` |
+| macOS x86_64 | `keentools-cloud-*-x86_64-apple-darwin.tar.gz` |
+| macOS ARM64（M1+） | `keentools-cloud-*-aarch64-apple-darwin.tar.gz` |
+| Windows x64 | `keentools-cloud-*-x86_64-pc-windows-msvc.zip` |
+
+### 方式四 — 从源码构建
+
+需要 [Rust](https://rustup.rs/) stable 工具链。
 
 ```bash
 git clone https://github.com/loonghao/keentools_cloud_cli
 cd keentools_cloud_cli
 cargo build --release
 # 二进制文件：./target/release/keentools-cloud
+```
+
+或直接从 Git 安装：
+
+```bash
+cargo install --git https://github.com/loonghao/keentools_cloud_cli
+```
+
+### 自动更新
+
+```bash
+keentools-cloud self-update
 ```
 
 ## 快速开始
@@ -56,6 +105,7 @@ keentools-cloud run photo1.jpg photo2.jpg photo3.jpg \
 | `ephemeral` | 零数据留存流水线 |
 | `schema` | 输出完整 CLI 模式信息（JSON） |
 | `auth` | 管理存储的 API Token |
+| `self-update` | 更新 CLI 到最新版本 |
 
 ## 分步流程
 
@@ -101,6 +151,29 @@ keentools-cloud ephemeral \
 ```
 
 > **注意：** 临时模式下，处理完成后 `download` 和 `info` 端点不可用。结果只存在于您提供的 URL 中。
+
+## 示例代码
+
+[`examples/`](examples/) 目录包含开箱即用的示例：
+
+| 文件 | 说明 |
+|------|------|
+| [`examples/pipeline.py`](examples/pipeline.py) | 完整 Python 流水线（需 `pip install requests`） |
+| [`examples/pipeline.sh`](examples/pipeline.sh) | 完整 Bash 流水线（需 `curl` + `jq`） |
+
+只需替换两个值即可运行：
+
+```bash
+# 编辑文件顶部的常量，或导出环境变量：
+export KEENTOOLS_API_URL=https://your-api-endpoint.example.com
+export KEENTOOLS_API_TOKEN=your_token_here
+
+# Python
+python examples/pipeline.py photo1.jpg photo2.jpg photo3.jpg
+
+# Bash
+bash examples/pipeline.sh photo1.jpg photo2.jpg photo3.jpg
+```
 
 ## 输出格式
 
