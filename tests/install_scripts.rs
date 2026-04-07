@@ -2,7 +2,6 @@
 ///
 /// These tests catch compatibility regressions (e.g., PS 7-only syntax in install.ps1,
 /// broken bash in install.sh) before they reach users.
-
 use std::path::Path;
 
 const INSTALL_PS1: &str = "install.ps1";
@@ -15,12 +14,9 @@ const INSTALL_SH: &str = "install.sh";
 /// Syntax that only works in PowerShell 7+ and MUST NOT appear in install.ps1.
 static PS7_ONLY_PATTERNS: &[&str] = &[
     // Null-coalescing operator
-    "??",
-    // Ternary operator (PS 7+)
-    "? :",
-    // Pipeline chain operators (PS 7+)
-    "&& ",
-    "|| ",
+    "??", // Ternary operator (PS 7+)
+    "? :", // Pipeline chain operators (PS 7+)
+    "&& ", "|| ",
 ];
 
 #[test]
@@ -90,11 +86,15 @@ fn install_sh_uses_strict_mode() {
     let source = std::fs::read_to_string(INSTALL_SH).expect("failed to read install.sh");
     // Must have set -euo pipefail or equivalent strict mode
     assert!(
-        source.contains("set -e") || source.contains("set -o errexit") || source.contains("set -eu"),
+        source.contains("set -e")
+            || source.contains("set -o errexit")
+            || source.contains("set -eu"),
         "install.sh should use 'set -e' (errexit)"
     );
     assert!(
-        source.contains("set -u") || source.contains("set -o nounset") || source.contains("set -eu"),
+        source.contains("set -u")
+            || source.contains("set -o nounset")
+            || source.contains("set -eu"),
         "install.sh should use 'set -u' (nounset)"
     );
     assert!(
@@ -112,7 +112,8 @@ fn install_sh_handles_env_var_defaults() {
         "install.sh must use ${{REPO}}:-default for REPOSITORY"
     );
     assert!(
-        source.contains("${KEENTOOLS_INSTALL_DIR:-") || source.contains("${KEENTOOLS_INSTALL_DIR:-"),
+        source.contains("${KEENTOOLS_INSTALL_DIR:-")
+            || source.contains("${KEENTOOLS_INSTALL_DIR:-"),
         "install.sh must use ${{DIR}}:-default for DIR"
     );
 }
