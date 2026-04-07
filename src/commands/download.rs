@@ -182,8 +182,8 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
             .unwrap_or_else(|| std::path::Path::new("."));
         let zip_file = fs::File::open(&download_dest)
             .with_context(|| format!("Cannot open downloaded ZIP: {}", download_dest.display()))?;
-        let mut archive = zip::ZipArchive::new(zip_file)
-            .with_context(|| "Failed to read ZIP archive")?;
+        let mut archive =
+            zip::ZipArchive::new(zip_file).with_context(|| "Failed to read ZIP archive")?;
 
         let mut extracted: Vec<String> = Vec::new();
         for i in 0..archive.len() {
