@@ -1,0 +1,22 @@
+# act configuration for running GitHub Actions locally
+# https://github.com/nektos/act
+#
+# Usage:
+#   act                          # run all jobs on push event
+#   act -j quality               # run quality checks only
+#   act -j test                  # run tests only (ubuntu-latest)
+#   act pull_request             # simulate pull_request event
+
+# Use medium-sized runner images (faster than full, smaller than micro)
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+-P macos-latest=ghcr.io/catthehacker/ubuntu:act-latest
+-P windows-latest=catthehacker/ubuntu:act-latest
+
+# Reuse containers between runs for speed
+--reuse
+
+# Pull images only if not present
+--pull=false
+
+# Default event
+--eventpath=.act/push.json
