@@ -5,3 +5,15 @@ Cargo.lock
 docs/node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+
+# vx generated agent skill directories
+.agents/
+.claude/
+.cline/
+.codebuddy/
+.cursor/
+.kiro/
+.opencode/
+.roo/
+.trae/
+.windsurf/

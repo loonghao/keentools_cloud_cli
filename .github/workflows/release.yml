@@ -114,7 +114,7 @@ jobs:
           shared-key: release-${{ matrix.target }}
 
       - name: Build release binary
-        run: vx cargo build --release --locked --target ${{ matrix.target }}
+        run: vx just build-release-target ${{ matrix.target }}
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
 
