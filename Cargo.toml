@@ -27,6 +27,10 @@ colored = "2"
 futures-util = "0.3"
 bytes = "1"
 atty = "0.2"
+semver = "1"
+flate2 = "1"
+tar = "0.4"
+zip = { version = "2", default-features = false, features = ["deflate"] }
 
 [profile.release]
 opt-level = 3

@@ -62,6 +62,9 @@ pub enum Commands {
 
     /// Manage authentication token
     Auth(crate::commands::auth_cmd::AuthArgs),
+
+    /// Update keentools-cloud to the latest version
+    SelfUpdate(crate::commands::self_update::SelfUpdateArgs),
 }
 
 /// Focal length handling mode

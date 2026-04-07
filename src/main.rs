@@ -33,10 +33,13 @@ async fn run(cli: Cli) -> Result<()> {
         }
     });
 
-    // Schema and Auth don't need an API token
+    // Schema, Auth, and SelfUpdate don't need an API token
     match cli.command {
         Commands::Schema(args) => return schema::run(args, output_format),
         Commands::Auth(args) => return commands::auth_cmd::run(args, output_format),
+        Commands::SelfUpdate(args) => {
+            return commands::self_update::run(args, output_format).await
+        }
         _ => {}
     }
 
@@ -65,6 +68,6 @@ async fn run(cli: Cli) -> Result<()> {
         Commands::Run(args) => commands::run_pipeline::run(args, ctx).await,
         Commands::Ephemeral(args) => commands::ephemeral::run(args, ctx).await,
         // Already handled above
-        Commands::Schema(_) | Commands::Auth(_) => unreachable!(),
+        Commands::Schema(_) | Commands::Auth(_) | Commands::SelfUpdate(_) => unreachable!(),
     }
 }

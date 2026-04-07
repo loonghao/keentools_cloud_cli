@@ -5,6 +5,7 @@ pub mod info;
 pub mod init;
 pub mod process;
 pub mod run_pipeline;
+pub mod self_update;
 pub mod status;
 pub mod upload;
 
