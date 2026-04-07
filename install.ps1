@@ -21,9 +21,9 @@
 #>
 
 param(
-    [string]$Version    = ($env:KEENTOOLS_INSTALL_VERSION    ?? "latest"),
-    [string]$InstallDir = ($env:KEENTOOLS_INSTALL_DIR        ?? "$env:USERPROFILE\.keentools\bin"),
-    [string]$Repository = ($env:KEENTOOLS_INSTALL_REPOSITORY ?? "loonghao/keentools_cloud_cli")
+    [string]$Version    = (if ($env:KEENTOOLS_INSTALL_VERSION) { $env:KEENTOOLS_INSTALL_VERSION } else { "latest" }),
+    [string]$InstallDir = (if ($env:KEENTOOLS_INSTALL_DIR)        { $env:KEENTOOLS_INSTALL_DIR }        else { "$env:USERPROFILE\.keentools\bin" }),
+    [string]$Repository = (if ($env:KEENTOOLS_INSTALL_REPOSITORY) { $env:KEENTOOLS_INSTALL_REPOSITORY } else { "loonghao/keentools_cloud_cli" })
 )
 
 $ErrorActionPreference = "Stop"

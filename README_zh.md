@@ -158,21 +158,30 @@ keentools-cloud ephemeral \
 
 | 文件 | 说明 |
 |------|------|
-| [`examples/pipeline.py`](examples/pipeline.py) | 完整 Python 流水线（需 `pip install requests`） |
+| [`examples/cli-quickstart.md`](examples/cli-quickstart.md) | 所有 CLI 子命令的完整使用指南，含可直接复制的示例 |
+| [`examples/pipeline.py`](examples/pipeline.py) | 直接调用 REST API 的完整 Python 流水线（需 `pip install requests`） |
 | [`examples/pipeline.sh`](examples/pipeline.sh) | 完整 Bash 流水线（需 `curl` + `jq`） |
-
-只需替换两个值即可运行：
+| [`examples/ipc-qt-demo.py`](examples/ipc-qt-demo.py) | PySide6/PyQt6 桌面应用，通过 `--ipc` NDJSON 流实时展示进度 |
+| [`examples/web-bridge.py`](examples/web-bridge.py) | Flask + Server-Sent Events 浏览器前端，由 `--ipc` 模式驱动（需 `pip install flask`） |
+| [`examples/actionforge-guide.md`](examples/actionforge-guide.md) | 与 [Actionforge](https://docs.actionforge.dev/agentic-coding/) 的智能代理集成指南，含 MCP 配置和 `.act` 图谱示例 |
 
 ```bash
-# 编辑文件顶部的常量，或导出环境变量：
 export KEENTOOLS_API_URL=https://your-api-endpoint.example.com
 export KEENTOOLS_API_TOKEN=your_token_here
 
-# Python
+# Python REST 流水线
 python examples/pipeline.py photo1.jpg photo2.jpg photo3.jpg
 
-# Bash
+# Bash 流水线
 bash examples/pipeline.sh photo1.jpg photo2.jpg photo3.jpg
+
+# Qt 桌面应用（实时进度）
+pip install PySide6
+python examples/ipc-qt-demo.py
+
+# 浏览器前端
+pip install flask
+python examples/web-bridge.py   # 打开 http://localhost:5000
 ```
 
 ## 输出格式
