@@ -12,12 +12,8 @@ const INSTALL_SH: &str = "install.sh";
 // ---------------------------------------------------------------------------
 
 /// Syntax that only works in PowerShell 7+ and MUST NOT appear in install.ps1.
-static PS7_ONLY_PATTERNS: &[&str] = &[
-    // Null-coalescing operator
-    "??", // Ternary operator (PS 7+)
-    "? :", // Pipeline chain operators (PS 7+)
-    "&& ", "|| ",
-];
+/// Covers: null-coalescing (??), ternary (? :), pipeline-chain (&& / ||).
+static PS7_ONLY_PATTERNS: &[&str] = &["??", "? :", "&& ", "|| "];
 
 #[test]
 fn install_ps1_exists() {
