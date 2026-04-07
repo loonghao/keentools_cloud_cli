@@ -1,0 +1,12 @@
+{
+  "ref": "refs/heads/main",
+  "repository": {
+    "name": "keentools_cloud_cli",
+    "full_name": "loonghao/keentools_cloud_cli",
+    "private": false,
+    "default_branch": "main"
+  },
+  "pusher": {
+    "name": "local-act"
+  }
+}

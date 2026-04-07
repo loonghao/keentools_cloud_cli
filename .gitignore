@@ -6,3 +6,6 @@ docs/node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
 
+# act local secrets (never commit real tokens)
+.act/.secrets
+.act/.env
