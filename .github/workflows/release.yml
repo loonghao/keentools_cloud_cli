@@ -21,6 +21,7 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_HTTP_TIMEOUT: "600"
   CARGO_NET_RETRY: "10"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   prepare-release:
@@ -112,6 +113,9 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: release-${{ matrix.target }}
+
+      - name: Sync Cargo.lock
+        run: vx cargo update --workspace
 
       - name: Build release binary
         run: vx just build-release-target ${{ matrix.target }}
