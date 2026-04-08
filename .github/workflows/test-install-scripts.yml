@@ -1,0 +1,193 @@
+name: Test Install Scripts
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-install-ps1-ps51:
+    name: install.ps1 (PS 5.1)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test arch detection
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $arch = $null
+          try {
+              $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+          } catch {
+              # RuntimeInformation unavailable (older .NET Framework) — use env var
+          }
+
+          if (-not $arch) {
+              $pa = $env:PROCESSOR_ARCHITECTURE
+              switch ($pa) {
+                  "AMD64" { $target = "x86_64-pc-windows-msvc" }
+                  "ARM64" { $target = "aarch64-pc-windows-msvc" }
+                  default { throw "Unsupported architecture: PROCESSOR_ARCHITECTURE=$pa" }
+              }
+          } else {
+              switch ($arch.ToString()) {
+                  "X64"   { $target = "x86_64-pc-windows-msvc" }
+                  "Arm64" { $target = "aarch64-pc-windows-msvc" }
+                  default { throw "Unsupported architecture: $arch" }
+              }
+          }
+
+          Write-Host "Detected: arch='$arch', target='$target'"
+
+          if ($target -ne "x86_64-pc-windows-msvc" -and $target -ne "aarch64-pc-windows-msvc") {
+              throw "Unexpected target: $target"
+          }
+
+      - name: Test fallback via PROCESSOR_ARCHITECTURE
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $pa = $env:PROCESSOR_ARCHITECTURE
+          Write-Host "PROCESSOR_ARCHITECTURE = '$pa'"
+
+          switch ($pa) {
+              "AMD64" { $target = "x86_64-pc-windows-msvc" }
+              "ARM64" { $target = "aarch64-pc-windows-msvc" }
+              default { throw "Unsupported architecture: PROCESSOR_ARCHITECTURE=$pa" }
+          }
+
+          Write-Host "Fallback target: '$target'"
+          if ($target -ne "x86_64-pc-windows-msvc" -and $target -ne "aarch64-pc-windows-msvc") {
+              throw "Unexpected fallback target: $target"
+          }
+
+      - name: Validate no PS7-only syntax
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $source = Get-Content -Raw -Path "install.ps1"
+
+          $forbidden = @("??", "? :", "&& ", "|| ")
+          $lineNo = 0
+          foreach ($line in $source -split "`n") {
+              $lineNo++
+              $trimmed = $line.Trim()
+              if ($trimmed.StartsWith("#")) { continue }
+              foreach ($pattern in $forbidden) {
+                  if ($line.Contains($pattern)) {
+                      throw "install.ps1:${lineNo} contains PS7-only syntax '${pattern}': $trimmed"
+                  }
+              }
+          }
+          Write-Host "install.ps1 syntax validation passed on PS 5.1"
+
+  test-install-ps1-ps7:
+    name: install.ps1 (PS 7)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test arch detection
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $arch = $null
+          try {
+              $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+          } catch {
+              # RuntimeInformation unavailable (older .NET Framework) — use env var
+          }
+
+          if (-not $arch) {
+              $pa = $env:PROCESSOR_ARCHITECTURE
+              switch ($pa) {
+                  "AMD64" { $target = "x86_64-pc-windows-msvc" }
+                  "ARM64" { $target = "aarch64-pc-windows-msvc" }
+                  default { throw "Unsupported architecture: PROCESSOR_ARCHITECTURE=$pa" }
+              }
+          } else {
+              switch ($arch.ToString()) {
+                  "X64"   { $target = "x86_64-pc-windows-msvc" }
+                  "Arm64" { $target = "aarch64-pc-windows-msvc" }
+                  default { throw "Unsupported architecture: $arch" }
+              }
+          }
+
+          Write-Host "Detected: arch='$arch', target='$target'"
+
+          if ($target -ne "x86_64-pc-windows-msvc" -and $target -ne "aarch64-pc-windows-msvc") {
+              throw "Unexpected target: $target"
+          }
+
+      - name: Test fallback via PROCESSOR_ARCHITECTURE
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $pa = $env:PROCESSOR_ARCHITECTURE
+          Write-Host "PROCESSOR_ARCHITECTURE = '$pa'"
+
+          switch ($pa) {
+              "AMD64" { $target = "x86_64-pc-windows-msvc" }
+              "ARM64" { $target = "aarch64-pc-windows-msvc" }
+              default { throw "Unsupported architecture: PROCESSOR_ARCHITECTURE=$pa" }
+          }
+
+          Write-Host "Fallback target: '$target'"
+          if ($target -ne "x86_64-pc-windows-msvc" -and $target -ne "aarch64-pc-windows-msvc") {
+              throw "Unexpected fallback target: $target"
+          }
+
+      - name: Validate no PS7-only syntax
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $source = Get-Content -Raw -Path "install.ps1"
+
+          $forbidden = @("??", "? :", "&& ", "|| ")
+          $lineNo = 0
+          foreach ($line in $source -split "`n") {
+              $lineNo++
+              $trimmed = $line.Trim()
+              if ($trimmed.StartsWith("#")) { continue }
+              foreach ($pattern in $forbidden) {
+                  if ($line.Contains($pattern)) {
+                      throw "install.ps1:${lineNo} contains PS7-only syntax '${pattern}': $trimmed"
+                  }
+              }
+          }
+          Write-Host "install.ps1 syntax validation passed on PS 7"
+
+  test-install-sh:
+    name: install.sh
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ShellCheck
+        run: |
+          sudo apt-get install -y shellcheck
+          shellcheck install.sh
+
+      - name: Validate arch detection
+        run: |
+          arch=$(uname -m)
+          case "$arch" in
+            x86_64)  echo "Detected: x86_64 → x86_64-unknown-linux-gnu" ;;
+            aarch64) echo "Detected: aarch64 → aarch64-unknown-linux-gnu" ;;
+            *)       echo "Unexpected arch: $arch"; exit 1 ;;
+          esac

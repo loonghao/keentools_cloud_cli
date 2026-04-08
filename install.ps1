@@ -33,12 +33,29 @@ $InstallDir = if ($env:KEENTOOLS_INSTALL_DIR)        { $env:KEENTOOLS_INSTALL_DI
 $Repository = if ($env:KEENTOOLS_INSTALL_REPOSITORY) { $env:KEENTOOLS_INSTALL_REPOSITORY } else { "loonghao/keentools_cloud_cli" }
 
 # ---------- detect architecture -----------------------------------------------
+# Prefer RuntimeInformation (works on PowerShell 7 / .NET 4.7.1+).
+# Fall back to $env:PROCESSOR_ARCHITECTURE for older Windows PowerShell 5.1.
 
-$arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
-switch ($arch) {
-    "X64"   { $target = "x86_64-pc-windows-msvc" }
-    "Arm64" { $target = "aarch64-pc-windows-msvc" }
-    default { throw "Unsupported architecture: $arch" }
+$arch = $null
+try {
+    $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+} catch {
+    # RuntimeInformation unavailable (older .NET Framework) — use env var
+}
+
+if (-not $arch) {
+    $pa = $env:PROCESSOR_ARCHITECTURE
+    switch ($pa) {
+        "AMD64" { $target = "x86_64-pc-windows-msvc" }
+        "ARM64" { $target = "aarch64-pc-windows-msvc" }
+        default { throw "Unsupported architecture: PROCESSOR_ARCHITECTURE=$pa" }
+    }
+} else {
+    switch ($arch.ToString()) {
+        "X64"   { $target = "x86_64-pc-windows-msvc" }
+        "Arm64" { $target = "aarch64-pc-windows-msvc" }
+        default { throw "Unsupported architecture: $arch" }
+    }
 }
 
 # ---------- resolve download URL ----------------------------------------------
