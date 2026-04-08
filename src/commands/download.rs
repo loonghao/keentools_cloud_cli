@@ -158,16 +158,13 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
         cb
     });
 
-    // Determine actual download destination: OBJ is always a ZIP
     let is_obj = matches!(args.format, crate::cli::MeshFormat::Obj);
-    let download_dest = if is_obj {
-        args.output_path.with_extension("zip")
-    } else {
-        args.output_path.clone()
-    };
+
+    // Download to a temporary path first, then inspect actual content
+    let tmp_dest = args.output_path.with_extension("download");
 
     ctx.client
-        .download_to_file(&download_url, &download_dest, progress_cb.as_deref())
+        .download_to_file(&download_url, &tmp_dest, progress_cb.as_deref())
         .await?;
 
     if let Some(p) = pb {
@@ -175,36 +172,69 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
     }
 
     if is_obj {
-        // Extract ZIP and report extracted files
-        let out_dir = args
-            .output_path
-            .parent()
-            .unwrap_or_else(|| std::path::Path::new("."));
-        let zip_file = fs::File::open(&download_dest)
-            .with_context(|| format!("Cannot open downloaded ZIP: {}", download_dest.display()))?;
-        let mut archive =
-            zip::ZipArchive::new(zip_file).with_context(|| "Failed to read ZIP archive")?;
-
-        let mut extracted: Vec<String> = Vec::new();
-        for i in 0..archive.len() {
-            let mut entry = archive.by_index(i)?;
-            let entry_name = entry.name().to_owned();
-            let dest = out_dir.join(&entry_name);
-            let mut buf = Vec::new();
-            entry.read_to_end(&mut buf)?;
-            fs::write(&dest, &buf)
-                .with_context(|| format!("Cannot write extracted file: {}", dest.display()))?;
-            extracted.push(dest.display().to_string());
+        // Read magic bytes to detect whether the server returned a ZIP or a bare OBJ
+        let mut header = [0u8; 4];
+        {
+            let mut f = fs::File::open(&tmp_dest)
+                .with_context(|| format!("Cannot open downloaded file: {}", tmp_dest.display()))?;
+            f.read_exact(&mut header).with_context(|| {
+                format!("Downloaded file too small: {}", tmp_dest.display())
+            })?;
         }
 
-        // Remove the temp ZIP
-        let _ = fs::remove_file(&download_dest);
+        // ZIP magic: PK\x03\x04 (local file header) or PK\x05\x06 (end of central directory)
+        let is_zip = header.starts_with(b"PK\x03\x04") || header.starts_with(b"PK\x05\x06");
 
-        printer.success(&serde_json::json!({
-            "format": format_str,
-            "extracted": extracted,
-        }));
+        if is_zip {
+            // Extract ZIP and report extracted files
+            let out_dir = args
+                .output_path
+                .parent()
+                .unwrap_or_else(|| std::path::Path::new("."));
+            let zip_file = fs::File::open(&tmp_dest).with_context(|| {
+                format!("Cannot open downloaded ZIP: {}", tmp_dest.display())
+            })?;
+            let mut archive =
+                zip::ZipArchive::new(zip_file).with_context(|| "Failed to read ZIP archive")?;
+
+            let mut extracted: Vec<String> = Vec::new();
+            for i in 0..archive.len() {
+                let mut entry = archive.by_index(i)?;
+                let entry_name = entry.name().to_owned();
+                let dest = out_dir.join(&entry_name);
+                let mut buf = Vec::new();
+                entry.read_to_end(&mut buf)?;
+                fs::write(&dest, &buf).with_context(|| {
+                    format!("Cannot write extracted file: {}", dest.display())
+                })?;
+                extracted.push(dest.display().to_string());
+            }
+
+            // Remove the temp download file
+            let _ = fs::remove_file(&tmp_dest);
+
+            printer.success(&serde_json::json!({
+                "format": format_str,
+                "extracted": extracted,
+            }));
+        } else {
+            // Not a ZIP — treat as a bare OBJ file and rename to target path
+            fs::rename(&tmp_dest, &args.output_path).with_context(|| {
+                format!(
+                    "Cannot save OBJ file to: {}",
+                    args.output_path.display()
+                )
+            })?;
+            printer.success(&serde_json::json!({
+                "saved_to": args.output_path.display().to_string(),
+                "format": format_str,
+            }));
+        }
     } else {
+        // Non-OBJ formats: rename temp file to the final destination
+        fs::rename(&tmp_dest, &args.output_path).with_context(|| {
+            format!("Cannot save file to: {}", args.output_path.display())
+        })?;
         printer.success(&serde_json::json!({
             "saved_to": args.output_path.display().to_string(),
             "format": format_str,
