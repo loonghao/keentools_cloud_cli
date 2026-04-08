@@ -64,6 +64,45 @@ fn install_ps1_has_param_defaults_for_env_vars() {
     );
 }
 
+#[test]
+fn install_ps1_has_processor_architecture_fallback() {
+    let source = std::fs::read_to_string(INSTALL_PS1).expect("failed to read install.ps1");
+    // The script must have a fallback using $env:PROCESSOR_ARCHITECTURE
+    // for environments where RuntimeInformation is unavailable (PS 5.1 / old .NET)
+    assert!(
+        source.contains("PROCESSOR_ARCHITECTURE"),
+        "install.ps1 must fall back to $env:PROCESSOR_ARCHITECTURE when RuntimeInformation is unavailable"
+    );
+    assert!(
+        source.contains("\"AMD64\""),
+        "install.ps1 must handle AMD64 in PROCESSOR_ARCHITECTURE fallback"
+    );
+    assert!(
+        source.contains("\"ARM64\""),
+        "install.ps1 must handle ARM64 in PROCESSOR_ARCHITECTURE fallback"
+    );
+}
+
+#[test]
+fn install_ps1_wraps_runtimeinformation_in_try_catch() {
+    let source = std::fs::read_to_string(INSTALL_PS1).expect("failed to read install.ps1");
+    // RuntimeInformation::OSArchitecture may throw on older .NET Framework
+    assert!(
+        source.contains("try {") && source.contains("OSArchitecture"),
+        "install.ps1 must wrap RuntimeInformation::OSArchitecture in try/catch"
+    );
+}
+
+#[test]
+fn install_ps1_uses_to_string_on_arch_enum() {
+    let source = std::fs::read_to_string(INSTALL_PS1).expect("failed to read install.ps1");
+    // The arch variable is a .NET enum; switch must compare via .ToString()
+    assert!(
+        source.contains("$arch.ToString()"),
+        "install.ps1 must use $arch.ToString() for switch comparison to avoid enum mismatch"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Bash – basic sanity checks
 // ---------------------------------------------------------------------------

@@ -177,9 +177,8 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
         {
             let mut f = fs::File::open(&tmp_dest)
                 .with_context(|| format!("Cannot open downloaded file: {}", tmp_dest.display()))?;
-            f.read_exact(&mut header).with_context(|| {
-                format!("Downloaded file too small: {}", tmp_dest.display())
-            })?;
+            f.read_exact(&mut header)
+                .with_context(|| format!("Downloaded file too small: {}", tmp_dest.display()))?;
         }
 
         // ZIP magic: PK\x03\x04 (local file header) or PK\x05\x06 (end of central directory)
@@ -191,9 +190,8 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
                 .output_path
                 .parent()
                 .unwrap_or_else(|| std::path::Path::new("."));
-            let zip_file = fs::File::open(&tmp_dest).with_context(|| {
-                format!("Cannot open downloaded ZIP: {}", tmp_dest.display())
-            })?;
+            let zip_file = fs::File::open(&tmp_dest)
+                .with_context(|| format!("Cannot open downloaded ZIP: {}", tmp_dest.display()))?;
             let mut archive =
                 zip::ZipArchive::new(zip_file).with_context(|| "Failed to read ZIP archive")?;
 
@@ -204,9 +202,8 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
                 let dest = out_dir.join(&entry_name);
                 let mut buf = Vec::new();
                 entry.read_to_end(&mut buf)?;
-                fs::write(&dest, &buf).with_context(|| {
-                    format!("Cannot write extracted file: {}", dest.display())
-                })?;
+                fs::write(&dest, &buf)
+                    .with_context(|| format!("Cannot write extracted file: {}", dest.display()))?;
                 extracted.push(dest.display().to_string());
             }
 
@@ -220,10 +217,7 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
         } else {
             // Not a ZIP — treat as a bare OBJ file and rename to target path
             fs::rename(&tmp_dest, &args.output_path).with_context(|| {
-                format!(
-                    "Cannot save OBJ file to: {}",
-                    args.output_path.display()
-                )
+                format!("Cannot save OBJ file to: {}", args.output_path.display())
             })?;
             printer.success(&serde_json::json!({
                 "saved_to": args.output_path.display().to_string(),
@@ -232,9 +226,8 @@ pub async fn run(args: DownloadArgs, ctx: Context) -> Result<()> {
         }
     } else {
         // Non-OBJ formats: rename temp file to the final destination
-        fs::rename(&tmp_dest, &args.output_path).with_context(|| {
-            format!("Cannot save file to: {}", args.output_path.display())
-        })?;
+        fs::rename(&tmp_dest, &args.output_path)
+            .with_context(|| format!("Cannot save file to: {}", args.output_path.display()))?;
         printer.success(&serde_json::json!({
             "saved_to": args.output_path.display().to_string(),
             "format": format_str,
