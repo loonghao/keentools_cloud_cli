@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.4](https://github.com/loonghao/keentools_cloud_cli/compare/v0.1.3...v0.1.4) (2026-04-08)
+
+
+### Bug Fixes
+
+* **install:** add PROCESSOR_ARCHITECTURE fallback for arch detection ([#10](https://github.com/loonghao/keentools_cloud_cli/issues/10)) ([d81953a](https://github.com/loonghao/keentools_cloud_cli/commit/d81953a484f91d025e223e557e45fc0f2247ae0d))
+
+
+### Miscellaneous Chores
+
+* sync Cargo.lock with Cargo.toml version bump [skip ci] ([e66202e](https://github.com/loonghao/keentools_cloud_cli/commit/e66202e0c66cbfb2555e1fd8671330df241fd1c6))
+
 ## [0.1.3](https://github.com/loonghao/keentools_cloud_cli/compare/v0.1.2...v0.1.3) (2026-04-08)
 
 
