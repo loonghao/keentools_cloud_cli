@@ -1,6 +1,6 @@
 [package]
 name = "keentools-cloud"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 description = "Unofficial CLI for the KeenTools Cloud 3D Head Reconstruction API"
 license = "MIT"
