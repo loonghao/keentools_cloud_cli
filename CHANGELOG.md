@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.5](https://github.com/loonghao/keentools_cloud_cli/compare/v0.1.4...v0.1.5) (2026-04-09)
+
+
+### Bug Fixes
+
+* robust download handling with magic-byte detection and gzip/zip support ([bbea687](https://github.com/loonghao/keentools_cloud_cli/commit/bbea68753abba962fa0cd3e034d5f5d79d4689d0))
+
+
+### Miscellaneous Chores
+
+* sync Cargo.lock with Cargo.toml version bump [skip ci] ([08d7a23](https://github.com/loonghao/keentools_cloud_cli/commit/08d7a23fd3fc4cb1b0a6c5b773931d7940b460d8))
+
 ## [0.1.4](https://github.com/loonghao/keentools_cloud_cli/compare/v0.1.3...v0.1.4) (2026-04-08)
 
 
