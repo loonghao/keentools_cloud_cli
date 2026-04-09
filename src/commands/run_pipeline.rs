@@ -248,7 +248,7 @@ pub async fn run(args: RunArgs, ctx: Context) -> Result<()> {
         printer.status_line("Step 5/5", "Downloading 3D model...");
     }
 
-    super::download::run(
+    let dl_result = super::download::run(
         DownloadArgs {
             avatar_id: avatar_id.clone(),
             output_path: args.output_path.clone(),
@@ -266,11 +266,14 @@ pub async fn run(args: RunArgs, ctx: Context) -> Result<()> {
     .await?;
 
     if args.ipc {
+        // Use the actual primary path from DownloadResult, not args.output_path.
+        // When the server returns a ZIP (OBJ format), the extracted files have
+        // different names (e.g., neutral.obj) than the original output_path.
         emit_ipc(&serde_json::json!({
             "type": "complete",
             "stage": "done",
             "percent": 100,
-            "saved_to": args.output_path.display().to_string()
+            "saved_to": dl_result.primary_path.display().to_string()
         }));
     }
 
