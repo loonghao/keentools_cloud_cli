@@ -61,7 +61,7 @@ async fn run(cli: Cli) -> Result<()> {
         Commands::Upload(args) => commands::upload::run(args, ctx).await,
         Commands::Process(args) => commands::process::run(args, ctx).await,
         Commands::Status(args) => commands::status::run(args, ctx).await,
-        Commands::Download(args) => commands::download::run(args, ctx).await,
+        Commands::Download(args) => commands::download::run(args, ctx).await.map(|_| ()),
         Commands::Info(args) => commands::info::run(args, ctx).await,
         Commands::Run(args) => commands::run_pipeline::run(args, ctx).await,
         Commands::Ephemeral(args) => commands::ephemeral::run(args, ctx).await,

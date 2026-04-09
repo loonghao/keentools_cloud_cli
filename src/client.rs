@@ -128,7 +128,12 @@ impl ApiClient {
         dest: &Path,
         on_progress: Option<&dyn Fn(u64, Option<u64>)>,
     ) -> Result<()> {
-        let resp = Client::new()
+        // Enable gzip auto-decoding so Content-Encoding: gzip responses
+        // are transparently decompressed before writing to disk.
+        let resp = Client::builder()
+            .gzip(true)
+            .build()
+            .context("Failed to build download client")?
             .get(url)
             .send()
             .await
