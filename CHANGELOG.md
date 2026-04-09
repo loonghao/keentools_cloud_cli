@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.6](https://github.com/loonghao/keentools_cloud_cli/compare/v0.1.5...v0.1.6) (2026-04-09)
+
+
+### Bug Fixes
+
+* prevent duplicate workflow triggers on Cargo.lock sync commits ([#14](https://github.com/loonghao/keentools_cloud_cli/issues/14)) ([53f1d9e](https://github.com/loonghao/keentools_cloud_cli/commit/53f1d9eb46383fbd1fee418cc9eccb91b9e1ff67))
+
+
+### Miscellaneous Chores
+
+* sync Cargo.lock with Cargo.toml version bump [skip ci] ([5e9c970](https://github.com/loonghao/keentools_cloud_cli/commit/5e9c970ac10de29d7f70e26cbaa8e488695bb022))
+
 ## [0.1.5](https://github.com/loonghao/keentools_cloud_cli/compare/v0.1.4...v0.1.5) (2026-04-09)
 
 
