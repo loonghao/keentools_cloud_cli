@@ -5,6 +5,9 @@ on:
     branches:
       - main
       - master
+    paths-ignore:
+      # Cargo.lock-only sync commits (from update-cargo-lock bot) do not need full CI
+      - "Cargo.lock"
   pull_request:
   workflow_dispatch:
 
