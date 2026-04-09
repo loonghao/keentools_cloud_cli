@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      # Cargo.lock sync commits from update-cargo-lock workflow must not
+      # trigger a new release-please run — that would cause infinite loops.
+      - "Cargo.lock"
   workflow_dispatch:
 
 permissions:
